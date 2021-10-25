@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}
+newspost
+{% endblock title %}
+
+{% block newsactive %} active {% endblock newsactive %}
+
+{% block body %}
+{% load humanize %}
+{% load extras %}
+<div class="container">
+
+        <h2 class="news-post-headline">{{post.headline}}</h2>
+        <p class="news-post-meta">{{post.timestamp}}<a href="#">{{post.source}}</a></p>
+        <p>{{post.content|safe}}</p>
+        <hr>
+
+</div>
+<div class="container">
+        <h2> comments</h2>
+    <div class="my-2">
+        {% if user.is_authenticated %}
+            <form action="/news/postcomment" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                  <input type="text" class="form-control" name="comment" placeholder="enter comment here">
+                </div>
+                  <input type="hidden" name="postSno" value="{{post.sno}}">
+                  <input type="hidden" name="parentSno" value="">
+                <button type="submit" class="btn btn-primary">submit</button>
+            </form>
+
+        {% else %}
+        <h3>plasse login to post comments</h3>
+        {% endif %}
+    </div>
+    {% for comment in comments %}
+
+            <div class="row my-2">
+                <div class="col-md-1 ">
+                    <img class="rounded mx-auto d-block w-100 p-2" src="/static/user.img/user.png" alt="user">
+                </div>
+                <div class="col-md-11 ">
+                <b>{{comment.user.username}} </b>  {{comment.timestamp|naturaltime}}
+                    <div>{{comment.comment}}</div>
+                    <div class="reply mx-0">
+                        {% if user.is_authenticated %}
+                    <p>
+                          <a class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#replyBox{{comment.sno}}" role="button" aria-expanded="false" aria-controls="replyBox{{comment.sno}}">
+                            REPLY
+                          </a>
+
+                        </p>
+                        <div class="collapse" id="replyBox{{comment.sno}}">
+                          <div class="card card-body">
+                             <form action="/news/postcomment" method="post">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                  <input type="text" class="form-control" name="comment" placeholder="enter comment here">
+                                     <input type="hidden" name="parentSno" value="{{comment.sno}}">
+                                </div>
+                                  <input type="hidden" name="postSno" value="{{post.sno}}">
+                                <button type="submit" class="btn btn-primary">submit</button>
+                            </form>
+                          </div>
+                        </div>
+                        {% endif %}
+                        <div class="replies my-3">
+                            {% for reply in replyDict|get_val:comment.sno %}
+                            <div class="col-md-1 ">
+                    <img class="rounded mx-auto d-block w-50 p-2" src="/static/user.img/user.png" alt="user">
+
+                            </div>
+                             <div class="col md-11">
+                                 {{reply.comment}}
+                                 <p> <b>{{reply.user.username}} </b>  {{reply.timestamp|naturaltime}}
+
+                             </div>
+
+
+                            <br>
+                            {% endfor %}
+
+                        </div>
+                </div>
+            </div>
+    {% endfor %}
+
+</div>
+{% endblock body %}
